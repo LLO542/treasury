@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTheme } from "../contexts/ThemeContext";
 import api from "../lib/axios";
 
 export default function Dashboard() {
+  const { isDarkMode, toggleTheme, primaryColor, setPrimaryColor, colorPresets } = useTheme();
   const [stats, setStats] = useState({ works: 0, blogs: 0 });
   const [recentWorks, setRecentWorks] = useState([]);
   const [recentBlogs, setRecentBlogs] = useState([]);
@@ -32,6 +34,15 @@ export default function Dashboard() {
     fetchData();
   }, []);
 
+  // Color preview classes for each preset
+  const colorClasses = {
+    blue: "bg-blue-500",
+    red: "bg-red-500",
+    green: "bg-green-500",
+    purple: "bg-purple-500",
+    orange: "bg-orange-500",
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center py-12">
@@ -43,6 +54,61 @@ export default function Dashboard() {
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold">Dashboard</h1>
+
+      {/* Theme Settings - C2: Both Dark Mode toggle AND Color Picker on same page */}
+      <div className="card p-6">
+        <h2 className="text-xl font-semibold mb-4">Theme Settings</h2>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+          {/* Dark Mode Toggle */}
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Dark Mode
+            </span>
+            <button
+              onClick={toggleTheme}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+                isDarkMode ? "bg-primary-600" : "bg-gray-300"
+              }`}
+              role="switch"
+              aria-checked={isDarkMode}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  isDarkMode ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* Divider */}
+          <div className="hidden sm:block h-8 w-px bg-gray-300 dark:bg-gray-600" />
+
+          {/* Color Picker */}
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Primary Color
+            </span>
+            <div className="flex items-center gap-2">
+              {Object.entries(colorPresets).map(([key, preset]) => (
+                <button
+                  key={key}
+                  onClick={() => setPrimaryColor(key)}
+                  className={`w-8 h-8 rounded-full ${colorClasses[key]} transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 ${
+                    primaryColor === key
+                      ? "ring-2 ring-offset-2 ring-gray-800 dark:ring-white scale-110"
+                      : ""
+                  }`}
+                  title={preset.name}
+                  aria-label={`Set ${preset.name} as primary color`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+        <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+          Your theme preferences are saved automatically and persist across sessions.
+        </p>
+      </div>
 
       {/* Stats */}
       <div className="grid md:grid-cols-2 gap-6">
