@@ -181,3 +181,36 @@ export const deleteBlog = async (req, res) => {
 
   return res.status(200).json({ message: "Blog deleted successfully" });
 };
+
+// Get current user's blogs (including drafts)
+export const getMyBlogs = async (req, res) => {
+  const blogs = await Blog.find({ author: req.user._id })
+    .sort({ createdAt: -1 })
+    .populate("author", "name")
+    .lean();
+
+  return res.status(200).json({ blogs });
+};
+
+// Batch publish: publish a single blog by ID (called concurrently from frontend)
+export const publishBlog = async (req, res) => {
+  const { id } = req.params;
+
+  const blog = await Blog.findById(id);
+  if (!blog) {
+    return res.status(404).json({ message: "Blog not found" });
+  }
+
+  if (blog.author.toString() !== req.user._id.toString() && req.user.role !== "admin") {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  blog.status = "published";
+  blog.publishedAt = new Date();
+  await blog.save();
+
+  return res.status(200).json({
+    message: "Blog published successfully",
+    blog,
+  });
+};

@@ -66,9 +66,12 @@ export default function Navbar() {
             {/* Auth buttons */}
             {isAuthenticated ? (
               <div className="flex items-center space-x-3">
-                <span className="text-sm text-gray-600 dark:text-gray-400">
+                <Link
+                  to="/profile"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors font-medium cursor-pointer"
+                >
                   {user?.name}
-                </span>
+                </Link>
                 <button onClick={logout} className="btn btn-secondary text-sm">
                   Logout
                 </button>
