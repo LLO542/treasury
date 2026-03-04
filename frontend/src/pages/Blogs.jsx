@@ -78,7 +78,7 @@ export default function Blogs() {
       <div className="card p-4">
         <input
           type="text"
-          placeholder="Search posts..."
+          placeholder="Search by title, content, author name or email..."
           className="input"
           value={search}
           onChange={(e) => updateFilter("search", e.target.value)}
@@ -103,7 +103,14 @@ export default function Blogs() {
         <>
           {blogs.length === 0 ? (
             <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-              No blog posts found.
+              {search ? (
+                <>
+                  No results found for &apos;<span className="font-semibold">{search}</span>&apos;
+                  <p className="mt-2 text-sm">Try searching with a different keyword, author name, or email.</p>
+                </>
+              ) : (
+                "No blog posts found."
+              )}
             </div>
           ) : (
             <div className="space-y-6">

@@ -86,7 +86,7 @@ export default function Works() {
           <div className="flex-1">
             <input
               type="text"
-              placeholder="Search works..."
+              placeholder="Search by title, description, poster name or email..."
               className="input"
               value={search}
               onChange={(e) => updateFilter("search", e.target.value)}
@@ -132,7 +132,14 @@ export default function Works() {
         <>
           {works.length === 0 ? (
             <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-              No works found. Try adjusting your filters.
+              {search ? (
+                <>
+                  No results found for &apos;<span className="font-semibold">{search}</span>&apos;
+                  <p className="mt-2 text-sm">Try searching with a different keyword, poster name, or email.</p>
+                </>
+              ) : (
+                "No works found. Try adjusting your filters."
+              )}
             </div>
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -59,34 +59,83 @@ export const createWork = async (req, res) => {
 export const getAllWorks = async (req, res) => {
   const { type, tags, search, page = 1, limit = 12 } = req.query;
   
-  const filter = {};
+  const skip = (Number(page) - 1) * Number(limit);
+  
+  // Build aggregation pipeline for searching including owner name
+  const pipeline = [];
+  
+  // Match stage for type and tags filters
+  const matchStage = {};
   
   if (type) {
-    filter.type = type;
+    matchStage.type = type;
   }
   
   if (tags) {
-    filter.tags = { $in: tags.split(",") };
+    matchStage.tags = { $in: tags.split(",") };
   }
   
+  if (Object.keys(matchStage).length > 0) {
+    pipeline.push({ $match: matchStage });
+  }
+  
+  // Lookup owner for searching by poster name
+  pipeline.push({
+    $lookup: {
+      from: "users",
+      localField: "owner",
+      foreignField: "_id",
+      as: "owner",
+    },
+  });
+  
+  pipeline.push({ $unwind: { path: "$owner", preserveNullAndEmptyArrays: true } });
+  
+  // Search filter (case-insensitive search on title, description, owner name, and owner email)
   if (search) {
-    filter.$or = [
-      { title: { $regex: search, $options: "i" } },
-      { description: { $regex: search, $options: "i" } },
-    ];
+    pipeline.push({
+      $match: {
+        $or: [
+          { title: { $regex: search, $options: "i" } },
+          { description: { $regex: search, $options: "i" } },
+          { "owner.name": { $regex: search, $options: "i" } },
+          { "owner.email": { $regex: search, $options: "i" } },
+        ],
+      },
+    });
   }
-
-  const skip = (Number(page) - 1) * Number(limit);
   
-  const [works, total] = await Promise.all([
-    Work.find(filter)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(Number(limit))
-      .populate("owner", "name")
-      .lean(),
-    Work.countDocuments(filter),
+  // Get total count before pagination
+  const countPipeline = [...pipeline, { $count: "total" }];
+  
+  // Add sorting and pagination
+  pipeline.push({ $sort: { createdAt: -1 } });
+  pipeline.push({ $skip: skip });
+  pipeline.push({ $limit: Number(limit) });
+  
+  // Project only needed owner fields
+  pipeline.push({
+    $project: {
+      title: 1,
+      slug: 1,
+      description: 1,
+      type: 1,
+      tags: 1,
+      media: 1,
+      mediaUrl: 1,
+      createdAt: 1,
+      updatedAt: 1,
+      "owner._id": 1,
+      "owner.name": 1,
+    },
+  });
+  
+  const [works, countResult] = await Promise.all([
+    Work.aggregate(pipeline),
+    Work.aggregate(countPipeline),
   ]);
+  
+  const total = countResult[0]?.total || 0;
 
   return res.status(200).json({
     works,
