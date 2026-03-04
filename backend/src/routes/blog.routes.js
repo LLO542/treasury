@@ -6,7 +6,7 @@ import {
   getBlogBySlug,
   updateBlog,
 } from "../controllers/blog.controller.js";
-import { authorize, optionalAuth, protect } from "../middleware/auth.middleware.js";
+import { optionalAuth, protect } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
@@ -14,9 +14,9 @@ const router = express.Router();
 router.get("/", optionalAuth, getAllBlogs);
 router.get("/:slug", optionalAuth, getBlogBySlug);
 
-// Protected routes (admin only)
-router.post("/", protect, authorize("admin"), createBlog);
-router.patch("/:id", protect, authorize("admin"), updateBlog);
-router.delete("/:id", protect, authorize("admin"), deleteBlog);
+// Protected routes (any authenticated user can create, edit/delete own posts)
+router.post("/", protect, createBlog);
+router.patch("/:id", protect, updateBlog);
+router.delete("/:id", protect, deleteBlog);
 
 export default router;

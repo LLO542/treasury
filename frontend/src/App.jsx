@@ -49,6 +49,15 @@ function App() {
             </ProtectedRoute>
           }
         />
+        {/* Any authenticated user can create blogs */}
+        <Route
+          path="blogs/new"
+          element={
+            <ProtectedRoute>
+              <CreateBlog />
+            </ProtectedRoute>
+          }
+        />
       </Route>
     </Routes>
   );
