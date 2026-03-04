@@ -29,34 +29,84 @@ export const createBlog = async (req, res) => {
 export const getAllBlogs = async (req, res) => {
   const { status, search, page = 1, limit = 10 } = req.query;
 
-  const filter = {};
-
+  const skip = (Number(page) - 1) * Number(limit);
+  
+  // Build aggregation pipeline for searching including author name
+  const pipeline = [];
+  
+  // Match stage for status filter
+  const matchStage = {};
+  
   // Only show published posts to non-admin users
   if (!req.user || req.user.role !== "admin") {
-    filter.status = "published";
+    matchStage.status = "published";
   } else if (status) {
-    filter.status = status;
+    matchStage.status = status;
   }
-
+  
+  if (Object.keys(matchStage).length > 0) {
+    pipeline.push({ $match: matchStage });
+  }
+  
+  // Lookup author for searching by poster name
+  pipeline.push({
+    $lookup: {
+      from: "users",
+      localField: "author",
+      foreignField: "_id",
+      as: "author",
+    },
+  });
+  
+  pipeline.push({ $unwind: { path: "$author", preserveNullAndEmptyArrays: true } });
+  
+  // Search filter (case-insensitive search on title, excerpt, content, author name, and author email)
   if (search) {
-    filter.$or = [
-      { title: { $regex: search, $options: "i" } },
-      { excerpt: { $regex: search, $options: "i" } },
-      { content: { $regex: search, $options: "i" } },
-    ];
+    pipeline.push({
+      $match: {
+        $or: [
+          { title: { $regex: search, $options: "i" } },
+          { excerpt: { $regex: search, $options: "i" } },
+          { content: { $regex: search, $options: "i" } },
+          { "author.name": { $regex: search, $options: "i" } },
+          { "author.email": { $regex: search, $options: "i" } },
+        ],
+      },
+    });
   }
-
-  const skip = (Number(page) - 1) * Number(limit);
-
-  const [blogs, total] = await Promise.all([
-    Blog.find(filter)
-      .sort({ publishedAt: -1, createdAt: -1 })
-      .skip(skip)
-      .limit(Number(limit))
-      .populate("author", "name")
-      .lean(),
-    Blog.countDocuments(filter),
+  
+  // Get total count before pagination
+  const countPipeline = [...pipeline, { $count: "total" }];
+  
+  // Add sorting and pagination
+  pipeline.push({ $sort: { publishedAt: -1, createdAt: -1 } });
+  pipeline.push({ $skip: skip });
+  pipeline.push({ $limit: Number(limit) });
+  
+  // Project only needed author fields
+  pipeline.push({
+    $project: {
+      title: 1,
+      slug: 1,
+      excerpt: 1,
+      content: 1,
+      coverImage: 1,
+      status: 1,
+      publishedAt: 1,
+      readingTimeMinutes: 1,
+      createdAt: 1,
+      updatedAt: 1,
+      "author._id": 1,
+      "author.name": 1,
+    },
+  });
+  
+  const [blogs, countResult] = await Promise.all([
+    Blog.aggregate(pipeline),
+    Blog.aggregate(countPipeline),
   ]);
+  
+  const total = countResult[0]?.total || 0;
 
   return res.status(200).json({
     blogs,
