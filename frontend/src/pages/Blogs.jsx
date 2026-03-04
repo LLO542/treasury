@@ -11,7 +11,7 @@ export default function Blogs() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [fromCache, setFromCache] = useState(false);
-  const { isAdmin } = useAuth();
+  const { isAdmin, isAuthenticated } = useAuth();
 
   const search = searchParams.get("search") || "";
   const page = searchParams.get("page") || "1";
@@ -61,8 +61,8 @@ export default function Blogs() {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <h1 className="text-3xl font-bold">Blog</h1>
-        {isAdmin && (
-          <Link to="/dashboard/blogs/new" className="btn btn-primary">
+        {isAuthenticated && (
+          <Link to={isAdmin ? "/dashboard/blogs/new" : "/blogs/new"} className="btn btn-primary">
             + Write New Post
           </Link>
         )}
