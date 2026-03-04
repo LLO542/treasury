@@ -140,6 +140,9 @@ export default function Dashboard() {
           <Link to="/dashboard/blogs/new" className="btn btn-primary">
             + Write Blog Post
           </Link>
+          <Link to="/dashboard/blogs/queue" className="btn btn-secondary">
+            📋 Draft Blog Queue
+          </Link>
         </div>
       </div>
 

@@ -6,6 +6,7 @@ import Blogs from "./pages/Blogs";
 import CreateBlog from "./pages/CreateBlog";
 import CreateWork from "./pages/CreateWork";
 import Dashboard from "./pages/Dashboard";
+import DraftBlogQueue from "./pages/DraftBlogQueue";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -55,6 +56,15 @@ function App() {
           element={
             <ProtectedRoute>
               <CreateBlog />
+            </ProtectedRoute>
+          }
+        />
+        {/* Draft Blog Queue - Concurrency Control Demo */}
+        <Route
+          path="dashboard/blogs/queue"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <DraftBlogQueue />
             </ProtectedRoute>
           }
         />
