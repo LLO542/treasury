@@ -2,6 +2,12 @@
 
 Initial scaffold for **TREASURY**: a personal portfolio and blog platform for web/mobile.
 
+## Student Information
+
+- **Student ID:** LLO542
+- **Course:** Fullstack Web Development Final Project
+- **Repository:** https://github.com/LLO542/treasury
+
 ## Initial Project Structure
 
 ```text
