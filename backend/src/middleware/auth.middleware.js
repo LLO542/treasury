@@ -39,3 +39,33 @@ export const authorize = (...roles) => (req, res, next) => {
 
   next();
 };
+
+// Optional auth - doesn't require authentication but attaches user if token is valid
+export const optionalAuth = async (req, _res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader?.startsWith("Bearer ")) {
+    return next();
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const isBlacklisted = await TokenBlacklist.findOne({ token }).lean();
+    if (isBlacklisted) {
+      return next();
+    }
+
+    const decoded = verifyAccessToken(token);
+    const user = await User.findById(decoded.sub).lean();
+
+    if (user) {
+      req.user = user;
+      req.token = token;
+    }
+  } catch {
+    // Token invalid, continue without user
+  }
+
+  next();
+};
