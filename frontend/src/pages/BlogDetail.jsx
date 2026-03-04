@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import api from "../lib/axios";
+import { CommentSection } from "../components/Comment";
 
 export default function BlogDetail() {
   const { slug } = useParams();
@@ -161,6 +162,11 @@ export default function BlogDetail() {
           )
         )}
       </div>
+
+      {/* Comment Section (C1: Recursive Component with nested replies) */}
+      <section className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
+        <CommentSection blogId={blog._id} />
+      </section>
 
       {/* Footer */}
       <footer className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">

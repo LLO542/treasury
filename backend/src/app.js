@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 import authRoutes from "./routes/auth.routes.js";
 import blogRoutes from "./routes/blog.routes.js";
+import commentRoutes from "./routes/comment.routes.js";
 import mediaRoutes from "./routes/media.routes.js";
 import workRoutes from "./routes/work.routes.js";
 
@@ -22,6 +23,7 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/works", workRoutes);
 app.use("/api/blogs", blogRoutes);
+app.use("/api/comments", commentRoutes);
 app.use("/api/media", mediaRoutes);
 
 // Multer error handling

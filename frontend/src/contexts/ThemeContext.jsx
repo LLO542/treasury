@@ -114,7 +114,6 @@ export function ThemeProvider({ children }) {
     }
   }, [config.primaryColor]);
 
-  // IMPORTANT: Using spread operator to preserve other state values (C3 requirement)
   const toggleTheme = () => {
     setConfig((prev) => ({ ...prev, isDarkMode: !prev.isDarkMode }));
   };
